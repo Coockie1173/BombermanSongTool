@@ -60,7 +60,15 @@ namespace BombermanSongTool
                 return;
             }
 
+            if (!File.Exists(WorkSpaceFolder + "\\UnkdataChunk.bin"))
+            {
+                PrintColoredString($"ERROR: CAN'T FIND UnkdataChunk.bin, PLEASE ENSURE THIS FILE IS IN YOUR WORKSPACE FOLDER.\n", ConsoleColor.Red, ConsoleColor.Black);
+                return;
+            }
+
             string[] DirectoryOrder = File.ReadAllLines(WorkSpaceFolder + "\\Order.txt");
+
+            byte[] UnkDataChunk = File.ReadAllBytes(WorkSpaceFolder + "\\UnkdataChunk.bin");
 
             foreach (string Directory in DirectoryOrder)
             {
@@ -90,7 +98,7 @@ namespace BombermanSongTool
             MyHeader.EntryCount = (ushort)(SongList.Count - 1);
             MyHeader.Entries = new List<AudioHeaderEntry>();
 
-            int Offs = MyHeader.GetSize();
+            int Offs = MyHeader.GetSize() + UnkDataChunk.Length;
 
             for (int i = 0; i < SongList.Count; i++)
             {
@@ -114,6 +122,8 @@ namespace BombermanSongTool
                 OutBytes.AddRange(LittleEndianToBigEndian(BitConverter.GetBytes(MyHeader.Entries[i].Offset)));
                 OutBytes.AddRange(LittleEndianToBigEndian(BitConverter.GetBytes(MyHeader.Entries[i].Length)));
             }
+
+            OutBytes.AddRange(UnkDataChunk);
 
             for(int i = 0; i < SongList.Count; i++)
             {
